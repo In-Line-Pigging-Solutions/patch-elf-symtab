@@ -1,0 +1,5 @@
+[package]
+name = "patch-elf-symtab"
+version = "0.1.0"
+edition = "2024"
+description = "ELF symbol table patching utility"
