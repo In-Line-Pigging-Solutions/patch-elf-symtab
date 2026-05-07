@@ -3,3 +3,5 @@
 /result-*
 .direnv/
 .envrc
+
+.pre-commit-config.yaml
