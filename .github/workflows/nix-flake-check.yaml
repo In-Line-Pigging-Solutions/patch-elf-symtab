@@ -1,0 +1,13 @@
+name: Check Nix flake
+on:
+  push:
+    branches:
+      - '**'
+jobs:
+  nix-flake-check:
+    name: nix flake check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/nix-installer-action@main
+      - run: nix flake check
