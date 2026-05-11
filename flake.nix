@@ -11,7 +11,7 @@
 
   outputs = inputs@{ flake-parts, ... }:
     flake-parts.lib.mkFlake { inherit inputs; } {
-      imports = [ ./nix/build.nix ];
+      imports = [ ./nix/build.nix ./testsuites/build.nix ];
       systems = [ "x86_64-linux" ];
 
       perSystem = { config, pkgs, ... }:
