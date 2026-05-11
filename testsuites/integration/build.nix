@@ -62,5 +62,36 @@
           mkdir -p "$out"
           echo ok >"$out"/success
         '';
+
+      checks.integration-unknown-json-key = pkgs.runCommand "patch-elf-symtab-integration-unknown-json-key"
+        {
+          nativeBuildInputs = [ config.packages.patch-elf-symtab ];
+          entriesJson = ./entries-unknown-key.json;
+        }
+        ''
+          set -euo pipefail
+
+          hello_world=${config.packages.hello-world-fixture}/bin/hello-world
+
+          set +e
+          stderr=$(patch-elf-symtab --entries-file-path "$entriesJson" < "$hello_world" 2>&1)
+          status=$?
+          set -e
+
+          if [[ "$status" -eq 0 ]]; then
+            echo "integration-unknown-json-key: expected patch-elf-symtab to exit non-zero" >&2
+            exit 1
+          fi
+
+          # JSON patches greeting and also names a key that is not an object symbol in the ELF.
+          if [[ "$stderr" != *'unknown JSON key'* ]] || [[ "$stderr" != *'___not_a_symbol_in_this_elf___'* ]]; then
+            echo "integration-unknown-json-key: unexpected stderr from patch-elf-symtab" >&2
+            printf 'got: %s\n' "$stderr" >&2
+            exit 1
+          fi
+
+          mkdir -p "$out"
+          echo ok >"$out"/success
+        '';
     };
 }

@@ -129,7 +129,7 @@ fn run() -> Result<()> {
     // Parse CLI arg
     let entries_json = std::fs::read_to_string(&args.entries_file_path)
         .with_context(|| format!("failed to read entries file {:?}", args.entries_file_path))?;
-    let entries: Entries = serde_json::from_str(&entries_json)
+    let mut entries: Entries = serde_json::from_str(&entries_json)
         .with_context(|| format!("failed to parse entries JSON {:?}", args.entries_file_path))?;
 
     // Create the buffer for the ELF file
@@ -166,9 +166,18 @@ fn run() -> Result<()> {
 
         patch_symbol(&elf, &mut output_buffer, sym, patch)
             .with_context(|| format!("failed to patch symbol {:?}", name))?;
+
+        entries.0.remove(name);
     }
 
     std::io::stdout().write_all(&output_buffer)?;
+
+    if !entries.0.is_empty() {
+        anyhow::bail!(
+            "unknown JSON key(s) do not match any object symbol in the ELF: {:?}",
+            entries.0.keys().collect::<Vec<_>>()
+        );
+    }
 
     Ok(())
 }
