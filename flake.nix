@@ -14,26 +14,19 @@
       imports = [ ./nix/build.nix ./testsuites/build.nix ];
       systems = [ "x86_64-linux" ];
 
+      flake.overlays.default = final: _prev: {
+        patch-elf-symtab = final.callPackage ./nix/patch-elf-symtab.nix {
+          src = final.lib.cleanSource inputs.self;
+        };
+      };
+
       perSystem = { config, pkgs, ... }:
         let
           pname = "patch-elf-symtab";
           src = pkgs.lib.cleanSource ./.;
         in
         {
-          packages.${pname} = pkgs.rustPlatform.buildRustPackage {
-            pname = pname;
-            version = "0.1.0";
-            inherit src;
-
-            cargoLock = {
-              lockFile = src + "/Cargo.lock";
-            };
-
-            meta = {
-              description = "ELF symbol table patching utility";
-              mainProgram = pname;
-            };
-          };
+          packages.${pname} = pkgs.callPackage ./nix/patch-elf-symtab.nix { inherit src; };
 
           devShells.default = pkgs.mkShell {
             packages = [
