@@ -6,12 +6,11 @@ stdenv.mkDerivation {
 
   src = lib.cleanSource ./.;
 
-  # ET_EXEC is required: patch-elf-symtab only handles classic executables (not PIE / ET_DYN).
   dontStrip = true;
 
   buildPhase = ''
     runHook preBuild
-    $CC -fno-pie -no-pie -Wall -Wextra -O2 -o hello-world main.c
+    $CC -Wall -Wextra -O2 -o hello-world main.c
     runHook postBuild
   '';
 

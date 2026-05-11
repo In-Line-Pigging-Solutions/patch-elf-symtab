@@ -12,7 +12,7 @@ use cli::Args;
 use entries::{Entries, HexBytes};
 
 use elf::ElfBytes;
-use elf::abi::{ET_EXEC, PT_LOAD, SHN_UNDEF};
+use elf::abi::{ET_DYN, ET_EXEC, PT_LOAD, SHN_UNDEF};
 use elf::endian::AnyEndian;
 use elf::symbol::Symbol;
 use std::io::Write;
@@ -31,7 +31,9 @@ fn symbol_data_file_range(elf: &ElfBytes<AnyEndian>, sym: Symbol) -> Result<(usi
     }
 
     match elf.ehdr.e_type {
-        ET_EXEC => {
+        // ET_EXEC: classic non-PIE executable. ET_DYN: PIE executable or shared object — symbol
+        // virtual addresses still map to file offsets through PT_LOAD the same way.
+        ET_EXEC | ET_DYN => {
             let virtual_address = sym.st_value;
             let segments = elf.segments().ok_or_else(|| {
                 anyhow::anyhow!("executable/shared object has no program headers")
