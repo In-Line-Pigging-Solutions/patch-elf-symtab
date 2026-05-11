@@ -1,15 +1,11 @@
 { ... }:
 {
   perSystem = { config, pkgs, ... }:
-    let
-      # Repo copy of patch map: symbol `greeting` → "patched ok!\0" + zero padding (16 bytes).
-      entriesJson = ./entries.json;
-    in
     {
-      checks.integration = pkgs.runCommand "patch-elf-symtab-integration"
+      checks.integration-pass = pkgs.runCommand "patch-elf-symtab-integration-pass"
         {
           nativeBuildInputs = [ config.packages.patch-elf-symtab ];
-          inherit entriesJson;
+          entriesJson = ./patched-entries.json;
         }
         ''
           set -euo pipefail
@@ -28,6 +24,38 @@
             printf '\nactual   (hex): '
             od -An -tx1 actual.out | tr -d '\n'
             printf '\n' >&2
+            exit 1
+          fi
+
+          mkdir -p "$out"
+          echo ok >"$out"/success
+        '';
+
+      checks.integration-fail = pkgs.runCommand "patch-elf-symtab-integration-fail"
+        {
+          nativeBuildInputs = [ config.packages.patch-elf-symtab ];
+          entriesJson = ./bad-patched-entries.json;
+        }
+        ''
+          set -euo pipefail
+
+          hello_world=${config.packages.hello-world-fixture}/bin/hello-world
+
+          set +e
+          stderr=$(patch-elf-symtab --entries-file-path "$entriesJson" < "$hello_world" 2>&1)
+          status=$?
+          set -e
+
+          if [[ "$status" -eq 0 ]]; then
+            echo "integration-fail: expected patch-elf-symtab to exit non-zero" >&2
+            exit 1
+          fi
+
+          expected='error: failed to patch symbol "greeting": patch is 37 bytes but symbol size is 16'
+          if [[ "$stderr" != "$expected" ]]; then
+            echo "integration-fail: unexpected stderr from patch-elf-symtab" >&2
+            printf 'expected: %s\n' "$expected" >&2
+            printf 'got:      %s\n' "$stderr" >&2
             exit 1
           fi
 
