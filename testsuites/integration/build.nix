@@ -14,10 +14,9 @@
         ''
           set -euo pipefail
 
-          patch_elf_symtab=${config.packages.patch-elf-symtab}/bin/patch-elf-symtab
           hello_world=${config.packages.hello-world-fixture}/bin/hello-world
 
-          "$patch_elf_symtab" --entries-file-path "$entriesJson" < "$hello_world" > patched
+          patch-elf-symtab --entries-file-path "$entriesJson" < "$hello_world" > patched
           chmod +x patched
 
           ./patched >actual.out
