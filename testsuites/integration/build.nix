@@ -31,6 +31,28 @@
           echo ok >"$out"/success
         '';
 
+      checks.integration-identity = pkgs.runCommand "patch-elf-symtab-integration-identity"
+        {
+          nativeBuildInputs = [ config.packages.patch-elf-symtab ];
+          entriesJson = ./identity-entries.json;
+        }
+        ''
+          set -euo pipefail
+
+          hello_world=${config.packages.hello-world-fixture}/bin/hello-world
+
+          patch-elf-symtab --entries-file-path "$entriesJson" < "$hello_world" > patched
+
+          if ! cmp -s "$hello_world" patched; then
+            echo "integration-identity: patched binary differs from input (expected byte-identical identity patch)" >&2
+            cmp -l "$hello_world" patched | head -n 20 >&2 || true
+            exit 1
+          fi
+
+          mkdir -p "$out"
+          echo ok >"$out"/success
+        '';
+
       checks.integration-fail = pkgs.runCommand "patch-elf-symtab-integration-fail"
         {
           nativeBuildInputs = [ config.packages.patch-elf-symtab ];
