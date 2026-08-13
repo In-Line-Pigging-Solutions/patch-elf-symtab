@@ -2,7 +2,15 @@
 name = "patch-elf-symtab"
 version = "0.1.0"
 edition = "2024"
-description = "ELF symbol table patching utility"
+description = "ELF symbol table patching library and CLI"
+
+[lib]
+name = "patch_elf_symtab"
+path = "src/lib.rs"
+
+[[bin]]
+name = "patch-elf-symtab"
+path = "src/bin/patch-elf-symtab/main.rs"
 
 [dependencies]
 anyhow = "1.0.102"

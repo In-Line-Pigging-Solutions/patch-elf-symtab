@@ -13,7 +13,7 @@ rustPlatform.buildRustPackage {
   };
 
   meta = {
-    description = "ELF symbol table patching utility";
+    description = "ELF symbol table patching library and CLI";
     mainProgram = "patch-elf-symtab";
   };
 }
